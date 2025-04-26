@@ -121,7 +121,7 @@ class TestHTMLNode(unittest.TestCase):
         parent_node = ParentNode("div", [], {"class": "container"})
         self.assertRaises(
             ValueError,
-            parent_node.to_html
+            parent_node.to_html,
         )
     
 
