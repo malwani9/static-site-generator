@@ -29,65 +29,62 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 def split_nodes_image(old_nodes):
    new_nodes = []
    for old_node in old_nodes:
-      image_tuples = extract_markdown_images(old_node.text)
-      if len(image_tuples) < 1:
-         new_nodes.append(TextNode(old_node.text, TextType.TEXT, None))
+      if old_node.text_type != TextType.TEXT:
+         new_nodes.append(old_node)
          continue
       
-      split_nodes = []
-      counter = 0
-      for i in range(len(image_tuples)):
-          if i == 0:
-             split_nodes = old_node.text.split(f"![{image_tuples[i][0]}]({image_tuples[i][1]})", 1)
-             continue
-          image_element = split_nodes.pop(i)
-          split_nodes += image_element.split(f"![{image_tuples[i][0]}]({image_tuples[i][1]})", 1)
-       
-      #print(f"SPLIT_NODES : {split_nodes}\n")
-      for split_node in split_nodes:
-          if split_node == "":
-             continue
-          new_nodes.append(TextNode(split_node, TextType.TEXT, None))
-          if counter <  len(image_tuples) and len(image_tuples) != 1:
-             new_nodes.append(TextNode(image_tuples[counter][0], TextType.IMAGE, image_tuples[counter][1]))
-             counter += 1
+      original_text = old_node.text
+      image_tuples = extract_markdown_images(original_text)
 
-      if len(image_tuples) == 1:
-         new_nodes.append(TextNode(image_tuples[0][0], TextType.IMAGE, image_tuples[0][1]))
+      if len(image_tuples) < 1:
+         new_nodes.append(old_node)
          continue
-   #print(f"NEW NODES LIST : {new_nodes} \n")
+      
+      for image_tuple in image_tuples:
+         parts = original_text.split(f"![{image_tuple[0]}]({image_tuple[1]})", 1)
+         if len(parts) != 2:
+            raise Exception("Invalid markdown!, missing iamge closing")
+        
+         if parts[0] != "":
+           new_nodes.append(TextNode(parts[0], TextType.TEXT, None))
+        
+         new_nodes.append(TextNode(image_tuple[0], TextType.IMAGE, image_tuple[1]))
+
+         original_text = parts[1]
+
+      if original_text != "":
+         new_nodes.append(TextNode(original_text, TextType.TEXT, None))
+
    return new_nodes
 
 def split_nodes_link(old_nodes):
    new_nodes = []
    for old_node in old_nodes:
-      link_tuples = extract_markdown_links(old_node.text)
+      if old_node.text_type != TextType.TEXT:
+         new_nodes.append(old_node)
+      
+      original_text = old_node.text
+      link_tuples = extract_markdown_links(original_text)
+
       if len(link_tuples) < 1:
-         new_nodes.append(TextNode(old_node.text, TextType.TEXT, None))
-         continue
+         new_nodes.append(TextNode(original_text, TextType.TEXT, None))
       
-      split_nodes = []
-      counter = 0
-      for i in range(len(link_tuples)):
-          if i == 0:
-             split_nodes = old_node.text.split(f"[{link_tuples[i][0]}]({link_tuples[i][1]})", 1)
-             continue
-          link_element = split_nodes.pop(i)
-          split_nodes += link_element.split(f"[{link_tuples[i][0]}]({link_tuples[i][1]})", 1)
-       
-      #print(f"SPLIT_NODES : {split_nodes}\n")
-      for split_node in split_nodes:
-          if split_node == "":
-             continue
-          new_nodes.append(TextNode(split_node, TextType.TEXT, None))
-          if counter <  len(link_tuples) and len(link_tuples) != 1:
-             new_nodes.append(TextNode(link_tuples[counter][0], TextType.LINK, link_tuples[counter][1]))
-             counter += 1
+      for link_tuple in link_tuples:
+         parts = original_text.split(f"[{link_tuple[0]}]({link_tuple[1]})", 1)
+
+         if len(parts) != 2:
+            raise Exception("Invalid markdown!, missing link closing")
+         
+         if parts[0] != "":
+            new_nodes.append(TextNode(parts[0], TextType.TEXT, None))
+        
+         new_nodes.append(TextNode(link_tuple[0], TextType.LINK, link_tuple[1]))
+
+         original_text = parts[1]
       
-      if len(link_tuples) == 1:
-         new_nodes.append(TextNode(link_tuples[0][0], TextType.LINK, link_tuples[0][1]))
-         continue
-   #print(f"NEW NODES LIST : {new_nodes} \n")
+      if original_text != "":
+         new_nodes(TextNode(original_text, TextType.TEXT, None))
+
    return new_nodes
 
 def extract_markdown_images(text):
