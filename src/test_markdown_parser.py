@@ -183,6 +183,33 @@ class TestMardownParser(unittest.TestCase):
             new_nodes,
         )
 
+    def test_split_link_single(self):
+        node = TextNode(
+            "[link](https://www.example.COM)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("link", TextType.LINK, "https://www.example.COM"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_link(self):
+        node = TextNode(
+            "This is text with an [link](https://google.com)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://google.com"),
+            ],
+            new_nodes,
+        )
+
     def test_split_links(self):
         node = TextNode(
             "This is text with an [link](https://google.com) and another [second link](https://google.com/images)",
