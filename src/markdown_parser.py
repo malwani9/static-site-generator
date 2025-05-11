@@ -11,7 +11,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
       split_nodes = []
       sections = node.text.split(delimiter)
 
-      if len(sections) < 3 or len(sections) % 2 == 0:
+      if len(sections) % 2 == 0:
          raise Exception(f"Invalid markdown syntax, missing closing {delimiter}")
       
       for i in range(len(sections)):
@@ -46,7 +46,7 @@ def split_nodes_image(old_nodes):
             raise Exception("Invalid markdown!, missing iamge closing")
         
          if parts[0] != "":
-           new_nodes.append(TextNode(parts[0], TextType.TEXT, None))
+            new_nodes.append(TextNode(parts[0], TextType.TEXT, None))
         
          new_nodes.append(TextNode(image_tuple[0], TextType.IMAGE, image_tuple[1]))
 
@@ -62,12 +62,14 @@ def split_nodes_link(old_nodes):
    for old_node in old_nodes:
       if old_node.text_type != TextType.TEXT:
          new_nodes.append(old_node)
-      
+         continue
+
       original_text = old_node.text
       link_tuples = extract_markdown_links(original_text)
 
       if len(link_tuples) < 1:
-         new_nodes.append(TextNode(original_text, TextType.TEXT, None))
+         new_nodes.append(old_node)
+         continue
       
       for link_tuple in link_tuples:
          parts = original_text.split(f"[{link_tuple[0]}]({link_tuple[1]})", 1)
@@ -83,7 +85,7 @@ def split_nodes_link(old_nodes):
          original_text = parts[1]
       
       if original_text != "":
-         new_nodes(TextNode(original_text, TextType.TEXT, None))
+         new_nodes.append(TextNode(original_text, TextType.TEXT, None))
 
    return new_nodes
 
@@ -94,3 +96,13 @@ def extract_markdown_images(text):
 def extract_markdown_links(text):
    matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
    return matches
+
+
+def text_to_textnodes(text):
+    nodes = [TextNode(text, TextType.TEXT)]
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+    return nodes
