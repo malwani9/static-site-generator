@@ -69,53 +69,63 @@ def block_to_html_node(block):
     elif block_type == BlockType.QUOTE:
         return quote_to_html(block)
     elif block_type == BlockType.PARAGRAPH:
-        return paragraph_to_html_node(block)
+        return paragraph_to_html(block)
 
 
 def heading_to_html(block):
     level = block.count("#")
     text = block[level+1:]
+    if level + 1 >= len(block):
+        raise ValueError(f"invalid heading level: {level}")
     children_nodes = text_to_children(text)
     return ParentNode(f"h{level}", children_nodes)
 
 def quote_to_html(block):
     lines = block.split("\n")
-    children_nodes = []
+    quote_lines = []
     for line in lines:
-        text = line[2:]
-        line_children = text_to_children(text)
-        children_nodes.extend(line_children)
+        if not line.startswith(">"):
+           raise ValueError("invalid quote block")
+        quote_lines.append(line.lstrip(">").strip())
+    content = " ".join(quote_lines)
+    children_nodes = text_to_children(content)
     return ParentNode("blockquote", children_nodes)
 
 
 def code_to_html(block):
-    text = block.replace("```", "")
-    text_node = TextNode(text, TextType.CODE, None)
-    return text_node_to_html_node(text_node)
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("invalid code block")
+    text = block[4:-3]
+    text_node = TextNode(text, TextType.TEXT)
+    child = text_node_to_html_node(text_node)
+    code_node = ParentNode("code", [child])
+    return ParentNode("pre", [code_node])
 
 
 def ordered_list_to_html(block):
     lines = block.split("\n")
-    children_nodes = []
+    li_nodes = []
     for line in lines:
-        text = line[2:]
-        line_children = text_to_children(text)
-        children_nodes.extend(line_children)
-    return line_children
+        text = line[3:]
+        children_nodes = text_to_children(text)
+        li_nodes.append(ParentNode("li", children_nodes))
+    return ParentNode("ol", li_nodes)
 
 def unordered_list_to_html(block):
     lines = block.split("\n")
-    children_nodes = []
+    li_nodes = []
     for line in lines:
         text = line[2:]
-        line_children = text_to_children(text)
-        children_nodes.extend(line_children)
-    return line_children
+        children_nodes = text_to_children(text)
+        li_nodes.append(ParentNode("li", children_nodes))
+    return ParentNode("ul", li_nodes)
 
 
 
-def paragraph_to_html_node(block):
-    children_nodes  = text_to_children(block)
+def paragraph_to_html(block):
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
+    children_nodes  = text_to_children(paragraph)
     return ParentNode("p", children_nodes)
 
 def text_to_children(text):
