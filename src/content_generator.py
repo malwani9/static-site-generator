@@ -5,13 +5,13 @@ from pathlib import Path
 
 def generate_pages_recursive(content_path, template_path, dest_path, base_path):
     for item in os.listdir(content_path):
-        src_path = os.path.join(content_path, item)
+        from_path = os.path.join(content_path, item)
         dst_path = os.path.join(dest_path, item)
-        if os.path.isfile(src_path):
+        if os.path.isfile(from_path):
             new_dest_path = Path(dst_path).with_suffix(".html")
-            generate_page(src_path, template_path, new_dest_path, base_path)
+            generate_page(from_path, template_path, new_dest_path, base_path)
         else:
-            generate_pages_recursive(src_path, template_path, dst_path, base_path)
+            generate_pages_recursive(from_path, template_path, dst_path, base_path)
 
 def generate_page(from_path, template_path, dest_path, base_path):
     print(f"Generate page from from {from_path} to {dest_path} using {template_path}")
@@ -27,10 +27,8 @@ def generate_page(from_path, template_path, dest_path, base_path):
 
     final_content = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_code)
 
-    href_rerplace = "href=\"/"
-    src_replace = "src=\"/"
-
-    final_content = final_content.replace(href_rerplace, f"href=\"{base_path}").replace(src_replace, f"src=\"{base_path}")
+    final_content = final_content.replace('href="/', 'href="' + base_path)
+    final_content = final_content.replace('src="/', 'src="' + base_path)
 
     dest_dir_path = os.path.dirname(dest_path)
     if dest_dir_path != "":
