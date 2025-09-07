@@ -1,8 +1,11 @@
-# Tolkien Fan Club
+# MA's Blog
 
+==Loading...==
 ![JRR Tolkien sitting](/images/tolkien.png)
 
 Here's the deal, **I like Tolkien**.
+
+~~Strikethrough~~
 
 > "I am in fact a Hobbit in all but size."
 >
